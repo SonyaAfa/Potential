@@ -69,6 +69,25 @@ def CreateSuitableGridParameters(Samples):
     return m,n,h,x0,y0
 
 #в гриде получится (m+1)*(n+1) точек
+
+#процудура нахождения ближайшей точки решетки в случае если точка расположена внутри области, покрытой решеткой
+def NearestGridPoint(x,y,m,n,h,x0,y0):
+    '''(x,y) --- the point
+    m,n - wide and height of the grid
+    h - size of squares
+    (x0,y0) --- left corner of the grid'''
+    x_nearest='out of grid'
+    y_nearest='out of grid'
+    if ((x<x0) or (x>x0+m*h) or (y<y0) or (y>y0+n*h)):
+        print('this point is out of grid')
+    else:
+        l=round((x-x0)/h)
+        t=round((y-y0)/h)
+        x_nearest=x0+l*h
+        y_nearest=y0+t*h
+    return x_nearest,y_nearest
+
+
 #класс точка сетки
 class GridPoint:
     def __init__(self):
@@ -80,23 +99,23 @@ point2=GridPoint()
 point1.coordinates=[1,2]
 point2.coordinates=[3,4]
 
-ListOfPoints=[]
-h=1
-for i in range(2):
-    for j in range(3):
-        CurrentGridPoint = GridPoint()
-        CurrentGridPoint.coordinates = [ i * h,  j * h]
-        CurrentGridPoint.density = Density(s,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
-        ListOfPoints.append(CurrentGridPoint)
+#ListOfPoints=[]
+#h=1
+#for i in range(2):
+#    for j in range(3):
+#        CurrentGridPoint = GridPoint()
+#        CurrentGridPoint.coordinates = [ i * h,  j * h]
+#        CurrentGridPoint.density = Density(s,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
+#        ListOfPoints.append(CurrentGridPoint)
 
-l=0
-for i in range(2):
-    for j in range(3):
-        print('ex',ListOfPoints[l].coordinates,ListOfPoints[l].density)
-        l+=1
+#l=0
+#for i in range(2):
+#    for j in range(3):
+#       print('ex',ListOfPoints[l].coordinates,ListOfPoints[l].density)
+#        l+=1
 
 print('point1',point1.coordinates,point1.density)
-#процедура создания массива точек сетки по параметрам сетки
+#процедура создания массива точек сетки по параметрам сетки (точка сетки - объект класса GridPoint)
 def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
     GridPoints = []
     for i in range(m+1):
@@ -104,7 +123,7 @@ def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
           CurrentGridPoint=GridPoint()
           CurrentGridPoint.coordinates=[x0+i*h,y0+j*h]
           CurrentGridPoint.density=Density(Samples,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
-          GridPoints=GridPoints+[[x0+i*h,y0+j*h]]
+          GridPoints.append(CurrentGridPoint)
     return GridPoints
 
 m,n,h,x0,y0=CreateSuitableGridParameters(s)
@@ -124,26 +143,18 @@ def DrawPoints(Samples):
 #yарисуем граф и сетку
 DrawPoints(s)
 GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
-DrawPoints(GridPoints)
+#DrawPoints(GridPoints)
+FirstCoordinate = []
+SecondCoordinate = []
+for i in GridPoints:
+    FirstCoordinate = FirstCoordinate + [i.coordinates[0]]
+    SecondCoordinate = SecondCoordinate + [i.coordinates[1]]
+# print('coord', FirstCoordinate, SecondCoordinate)
+plt.scatter(FirstCoordinate, SecondCoordinate)
 #plt.show()
 #нарисовали граф и сетку
 
-#процудура нахождения ближайшей точки решетки в случае если точка расположена внутри области, покрытой решеткой
-def NearestGridPoint(x,y,m,n,h,x0,y0):
-    '''(x,y) --- the point
-    m,n - wide and height of the grid
-    h - size of squares
-    (x0,y0) --- left corner of the grid'''
-    x_nearest='out of grid'
-    y_nearest='out of grid'
-    if ((x<x0) or (x>x0+m*h) or (y<y0) or (y>y0+n*h)):
-        print('this point is out of grid')
-    else:
-        l=round((x-x0)/h)
-        t=round((y-y0)/h)
-        x_nearest=x0+l*h
-        y_nearest=y0+t*h
-    return x_nearest,y_nearest
+
 #x=float(input('enter x'))
 #y=float(input('enter y'))
 #print(NearestGridPoint(x,y,m,n,h,x0,y0))
