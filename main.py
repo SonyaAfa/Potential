@@ -12,6 +12,7 @@ df=s
 G = gt.Graph(df, use_pygsp=True, knn=3)
 print('j',G)
 
+
 #df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
 import scipy.spatial.distance as distance
@@ -31,8 +32,8 @@ def GaussianKernel(x,y,mu1,mu2,sigma):
     K_sigma=1/(sigma*math.sqrt(2*math.pi))*norm.pdf(distance,loc=0,scale=sigma)
     return K_sigma
      #return 1/(2*math.pi*sigma**2)*math.exp(-((x-mu1)**2+(y-mu2)**2)/(2*sigma**2))
-print('Gaussian',GaussianKernel(3,4,0,0,1))
-print('lenSampl',len(s))
+#print('Gaussian',GaussianKernel(3,4,0,0,1))
+#print('lenSampl',len(s))
 #процудура нахождения плотности в точке (x,y), рассчитаная как сумма Гауссиан по матрице точек Samples
 def Density(Samples,x,y,sigma):
     '''samples - полученные точки,
@@ -42,9 +43,9 @@ def Density(Samples,x,y,sigma):
     for i in Samples:
         d+=GaussianKernel(x,y,i[0],i[1],sigma)
     return d/len(Samples)
-print(Density(s,1,1,0.1))
-#процудура создания решетки(сетки)
-def CreateSuitableGrid(Samples):
+#print(Density(s,1,1,0.1))
+#процудура нахождения подходящих параметров  решетки(сетки)
+def CreateSuitableGridParameters(Samples):
     '''create grid
     (x0,y0) --- left down corner'''
     #находим левый нижний (x0,y0) и правый верхний (x1,y1) узла графа. (x0,y0) --- левый нижний угол сетки
@@ -56,7 +57,7 @@ def CreateSuitableGrid(Samples):
     MinDist=distance.pdist(Samples).min()#наименьшее расстоние между точками из samples
     h=MinDist/(1.01*math.sqrt(2))# определяю шаг сетки так, чтобы к разным точкам графа
                                  # разные точки сетки оказались ближайшими. Для этого достаточно, чтобы h*sqrt(2)<MinDist
-    print('mindist',MinDist,'h',h)
+    #print('mindist',MinDist,'h',h)
     m=0
     n=0
     while x0+m*h<x1:
@@ -66,16 +67,48 @@ def CreateSuitableGrid(Samples):
     print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
 
     return m,n,h,x0,y0
-#процедура создания массива точек сетки рпо параметрам сетки
-def CreateGridPoints(m,n,h,x0,y0):
+
+#в гриде получится (m+1)*(n+1) точек
+#класс точка сетки
+class GridPoint:
+    def __init__(self):
+        self.coordinates=[]#координаты точки
+        self.density=0#плотность в этой точке
+        self.InGraph=False#true если точка является ближайшей точкой сетки для некоторой точки из samples
+point1=GridPoint()
+point2=GridPoint()
+point1.coordinates=[1,2]
+point2.coordinates=[3,4]
+
+ListOfPoints=[]
+h=1
+for i in range(2):
+    for j in range(3):
+        CurrentGridPoint = GridPoint()
+        CurrentGridPoint.coordinates = [ i * h,  j * h]
+        CurrentGridPoint.density = Density(s,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
+        ListOfPoints.append(CurrentGridPoint)
+
+l=0
+for i in range(2):
+    for j in range(3):
+        print('ex',ListOfPoints[l].coordinates,ListOfPoints[l].density)
+        l+=1
+
+print('point1',point1.coordinates,point1.density)
+#процедура создания массива точек сетки по параметрам сетки
+def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
     GridPoints = []
     for i in range(m+1):
        for j in range(n+1):
+          CurrentGridPoint=GridPoint()
+          CurrentGridPoint.coordinates=[x0+i*h,y0+j*h]
+          CurrentGridPoint.density=Density(Samples,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
           GridPoints=GridPoints+[[x0+i*h,y0+j*h]]
     return GridPoints
 
-m,n,h,x0,y0=CreateSuitableGrid(s)
-print('mnhx0y0x1y1',m,n,h,x0,y0)
+m,n,h,x0,y0=CreateSuitableGridParameters(s)
+#print('mnhx0y0x1y1',m,n,h,x0,y0)
 #print(CreateGridPoints(m,n,h,x0,y0))
 #plt.scatter([2,3,1],[0,1,2])
 #процедура рисования точек из Samples
@@ -88,10 +121,13 @@ def DrawPoints(Samples):
     #print('coord', FirstCoordinate, SecondCoordinate)
     plt.scatter(FirstCoordinate, SecondCoordinate)
     #plt.show()
+#yарисуем граф и сетку
 DrawPoints(s)
-GridPoints=CreateGridPoints(m,n,h,x0,y0)
+GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
 DrawPoints(GridPoints)
-plt.show()
+#plt.show()
+#нарисовали граф и сетку
+
 #процудура нахождения ближайшей точки решетки в случае если точка расположена внутри области, покрытой решеткой
 def NearestGridPoint(x,y,m,n,h,x0,y0):
     '''(x,y) --- the point
@@ -111,4 +147,4 @@ def NearestGridPoint(x,y,m,n,h,x0,y0):
 #x=float(input('enter x'))
 #y=float(input('enter y'))
 #print(NearestGridPoint(x,y,m,n,h,x0,y0))
-print('new commit')
+
