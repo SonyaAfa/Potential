@@ -10,7 +10,7 @@ import graphtools as gt
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
 G = gt.Graph(df, use_pygsp=True, knn=3)
-print(G)
+print('j',G)
 
 #df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
@@ -76,7 +76,7 @@ def CreateGridPoints(m,n,h,x0,y0):
 
 m,n,h,x0,y0=CreateSuitableGrid(s)
 print('mnhx0y0x1y1',m,n,h,x0,y0)
-print(CreateGridPoints(m,n,h,x0,y0))
+#print(CreateGridPoints(m,n,h,x0,y0))
 #plt.scatter([2,3,1],[0,1,2])
 #процедура рисования точек из Samples
 def DrawPoints(Samples):
@@ -85,7 +85,7 @@ def DrawPoints(Samples):
     for i in Samples:
         FirstCoordinate = FirstCoordinate + [i[0]]
         SecondCoordinate = SecondCoordinate + [i[1]]
-    print('coord', FirstCoordinate, SecondCoordinate)
+    #print('coord', FirstCoordinate, SecondCoordinate)
     plt.scatter(FirstCoordinate, SecondCoordinate)
     #plt.show()
 DrawPoints(s)
