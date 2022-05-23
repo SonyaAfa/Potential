@@ -11,8 +11,8 @@ df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
 G = gt.Graph(df, use_pygsp=True, knn=3)
 print('j',G)
-
-
+G.A
+print(G.A)
 #df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
 import scipy.spatial.distance as distance
@@ -70,7 +70,8 @@ def CreateSuitableGridParameters(Samples):
 
 #в гриде получится (m+1)*(n+1) точек
 
-#процудура нахождения ближайшей точки решетки в случае если точка расположена внутри области, покрытой решеткой
+#процудура нахождения координат и расположения ближайшей точки решетки в
+# случае если точка расположена внутри области, покрытой решеткой
 def NearestGridPoint(x,y,m,n,h,x0,y0):
     '''(x,y) --- the point
     m,n - wide and height of the grid
@@ -85,15 +86,19 @@ def NearestGridPoint(x,y,m,n,h,x0,y0):
         t=round((y-y0)/h)
         x_nearest=x0+l*h
         y_nearest=y0+t*h
-    return x_nearest,y_nearest
-
-
+    return x_nearest,y_nearest,l,t
+#параметры l,t указывают на место этой точки в сетке
+#print('test NearestGridPoint')
+#m,n,h,x0,y0=CreateSuitableGridParameters(s)
+#a=NearestGridPoint(2,3.6,m,n,h,x0,y0)
+#print('Nearest 2,3.6',a)
 #класс точка сетки
 class GridPoint:
     def __init__(self):
         self.coordinates=[]#координаты точки
         self.density=0#плотность в этой точке
         self.InGraph=False#true если точка является ближайшей точкой сетки для некоторой точки из samples
+        self.GraphNodeNumber=0#номер вершины графа, к которой точка является ближайшей если такая есть
 point1=GridPoint()
 point2=GridPoint()
 point1.coordinates=[1,2]
@@ -115,7 +120,7 @@ point2.coordinates=[3,4]
 #        l+=1
 
 print('point1',point1.coordinates,point1.density)
-#процедура создания массива точек сетки по параметрам сетки (точка сетки - объект класса GridPoint)
+#процедура создания списка точек сетки по параметрам сетки (точка сетки - объект класса GridPoint)
 def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
     GridPoints = []
     for i in range(m+1):
@@ -124,9 +129,29 @@ def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
           CurrentGridPoint.coordinates=[x0+i*h,y0+j*h]
           CurrentGridPoint.density=Density(Samples,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
           GridPoints.append(CurrentGridPoint)
+    # для каждой точки из samples определяем ближайшую вершину сетки и сообщаем этой вершине сетки, что для нее
+    # есть ближайшая из графа
+    k=0
+    for i in Samples:
+        x,y,l,t=NearestGridPoint(i[0],i[1],m,n,h,x0,y0)
+        GridPoints[l*(n+1)+t].InGraph=True
+        GridPoints[l*(n+1)+t].GraphNodeNumber=k
+        k+=1
     return GridPoints
 
 m,n,h,x0,y0=CreateSuitableGridParameters(s)
+GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
+
+#ШАГ 4
+#процудура расширения матрицы L(Лапласиан)
+
+
+
+for i in GridPoints:
+    if i.InGraph:
+        print(i.GraphNodeNumber)
+
+#Нарисуем сетку и граф
 #print('mnhx0y0x1y1',m,n,h,x0,y0)
 #print(CreateGridPoints(m,n,h,x0,y0))
 #plt.scatter([2,3,1],[0,1,2])
@@ -142,7 +167,7 @@ def DrawPoints(Samples):
     #plt.show()
 #yарисуем граф и сетку
 DrawPoints(s)
-GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
+
 #DrawPoints(GridPoints)
 FirstCoordinate = []
 SecondCoordinate = []
@@ -151,7 +176,14 @@ for i in GridPoints:
     SecondCoordinate = SecondCoordinate + [i.coordinates[1]]
 # print('coord', FirstCoordinate, SecondCoordinate)
 plt.scatter(FirstCoordinate, SecondCoordinate)
-#plt.show()
+
+#обведем красным точки, которые возле точек из графа
+
+for i in s:
+    x,y,j,t=NearestGridPoint(i[0],i[1],m,n,h,x0,y0)
+    plt.scatter([x],[y],color='red')
+    #print('gridPointFromSamples',x,y)
+plt.show()
 #нарисовали граф и сетку
 
 
