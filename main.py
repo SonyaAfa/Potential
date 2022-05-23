@@ -18,6 +18,9 @@ import scipy.spatial.distance as distance
 #import statistics
 from scipy.stats import norm
 import math
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import scatter
+
 sigma=1
 #nn=np.random.normal(mu,sigma,1)
 #вычисление значения  Гауссова ядра в точке х,y
@@ -42,7 +45,8 @@ def Density(Samples,x,y,sigma):
 print(Density(s,1,1,0.1))
 #процудура создания решетки(сетки)
 def CreateSuitableGrid(Samples):
-    '''create grid'''
+    '''create grid
+    (x0,y0) --- left down corner'''
     #находим левый нижний (x0,y0) и правый верхний (x1,y1) узла графа. (x0,y0) --- левый нижний угол сетки
     x0=min(Samples, key=lambda j:j[0])[0]
     x1=max(Samples, key=lambda j:j[0])[0]
@@ -59,11 +63,35 @@ def CreateSuitableGrid(Samples):
         m+=1
     while y0+n*h<y1:
         n+=1
+    print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
 
-    #print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
     return m,n,h,x0,y0
+#процедура создания массива точек сетки рпо параметрам сетки
+def CreateGridPoints(m,n,h,x0,y0):
+    GridPoints = []
+    for i in range(m+1):
+       for j in range(n+1):
+          GridPoints=GridPoints+[[x0+i*h,y0+j*h]]
+    return GridPoints
+
 m,n,h,x0,y0=CreateSuitableGrid(s)
 print('mnhx0y0x1y1',m,n,h,x0,y0)
+print(CreateGridPoints(m,n,h,x0,y0))
+#plt.scatter([2,3,1],[0,1,2])
+#процедура рисования точек из Samples
+def DrawPoints(Samples):
+    FirstCoordinate = []
+    SecondCoordinate = []
+    for i in Samples:
+        FirstCoordinate = FirstCoordinate + [i[0]]
+        SecondCoordinate = SecondCoordinate + [i[1]]
+    print('coord', FirstCoordinate, SecondCoordinate)
+    plt.scatter(FirstCoordinate, SecondCoordinate)
+    #plt.show()
+DrawPoints(s)
+GridPoints=CreateGridPoints(m,n,h,x0,y0)
+DrawPoints(GridPoints)
+plt.show()
 #процудура нахождения ближайшей точки решетки в случае если точка расположена внутри области, покрытой решеткой
 def NearestGridPoint(x,y,m,n,h,x0,y0):
     '''(x,y) --- the point
