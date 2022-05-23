@@ -14,6 +14,7 @@ print(G)
 
 #df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
+import scipy.spatial.distance as distance
 #import statistics
 from scipy.stats import norm
 import math
@@ -36,24 +37,33 @@ def Density(Samples,x,y,sigma):
      sigma --- дисперсия для Гауссиан'''
     d=0#значение плотности
     for i in Samples:
-        #print((x, y, i[0], i[1], sigma))
-        #print('GaussianKernel',GaussianKernel(x,y,i[0],i[1],sigma))
         d+=GaussianKernel(x,y,i[0],i[1],sigma)
-        #print('d',d)
-        #print('density',i,i[0])
     return d/len(Samples)
 print(Density(s,1,1,0.1))
-#процудура создания решетки mxn c шагом h
-def CreateGrid():
+#процудура создания решетки(сетки)
+def CreateSuitableGrid(Samples):
     '''create grid'''
-    m=int(input('Enter the wide of the grid'))
-    n=int(input('Enter the height of the grid'))
-    h=float(input('enter the side of one square'))#шаг сетки
-    x0, y0=eval(input('enter the coordinate of the bottom left corner'))
-    print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
-    return m,n,h,(x0,y0)
-#m,n,h,(x0,y0)=CreateGrid()
-#print(m,n,h)
+    #находим левый нижний (x0,y0) и правый верхний (x1,y1) узла графа. (x0,y0) --- левый нижний угол сетки
+    x0=min(Samples, key=lambda j:j[0])[0]
+    x1=max(Samples, key=lambda j:j[0])[0]
+    y0=min(Samples, key=lambda j:j[1])[1]
+    y1=max(Samples, key=lambda j:j[1])[1]
+
+    MinDist=distance.pdist(Samples).min()#наименьшее расстоние между точками из samples
+    h=MinDist/(1.01*math.sqrt(2))# определяю шаг сетки так, чтобы к разным точкам графа
+                                 # разные точки сетки оказались ближайшими. Для этого достаточно, чтобы h*sqrt(2)<MinDist
+    print('mindist',MinDist,'h',h)
+    m=0
+    n=0
+    while x0+m*h<x1:
+        m+=1
+    while y0+n*h<y1:
+        n+=1
+
+    #print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
+    return m,n,h,x0,y0
+m,n,h,x0,y0=CreateSuitableGrid(s)
+print('mnhx0y0x1y1',m,n,h,x0,y0)
 #процудура нахождения ближайшей точки решетки в случае если точка расположена внутри области, покрытой решеткой
 def NearestGridPoint(x,y,m,n,h,x0,y0):
     '''(x,y) --- the point
