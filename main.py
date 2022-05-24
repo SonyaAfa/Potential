@@ -23,8 +23,7 @@ print(G.L.A)
 G.compute_fourier_basis
 G.set_coordinates(kind=s)
 G.plot()
-M=np.matrix([[1,2],[3,4]])
-print(M)
+
 #df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
 import scipy.spatial.distance as distance
@@ -110,7 +109,7 @@ class GridPoint:
         self.coordinates=[]#координаты точки
         self.density=0#плотность в этой точке
         self.InGraph=False#true если точка является ближайшей точкой сетки для некоторой точки из samples
-        self.GraphNodeNumber=0#номер вершины графа, к которой точка является ближайшей если такая есть
+        self.GraphNodeNumber=-1#номер вершины графа, к которой точка является ближайшей если такая есть
 point1=GridPoint()
 point2=GridPoint()
 point1.coordinates=[1,2]
