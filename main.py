@@ -12,7 +12,15 @@ df=s
 G = gt.Graph(df, use_pygsp=True, knn=3)
 print('j',G)
 G.A
-print(G.A)
+#print(G.A)
+#print(G.K)
+#print('dw',G.dw)
+#print('e',G.e)
+G.compute_fourier_basis
+G.set_coordinates(kind=s)
+G.plot()
+M=np.matrix([[1,2],[3,4]])
+print(M)
 #df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
 import scipy.spatial.distance as distance
