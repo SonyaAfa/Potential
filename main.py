@@ -3,15 +3,19 @@ import scipy
 import numpy as np
 from numpy import linalg as LA
 
-s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
+#s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
+s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
 print(s)
+from sklearn import datasets#новая строка из документации к graphtools
 import graphtools as gt
 #s=np.loadtxt('text4.txt',dtype=np.complex_)
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
-G = gt.Graph(df, use_pygsp=True, knn=3)
+G = gt.Graph(df, use_pygsp=True, knn=2)
 print('j',G)
 G.A
+print(G.compute_laplacian('normalized'))
+print(G.L.A)
 #print(G.A)
 #print(G.K)
 #print('dw',G.dw)
