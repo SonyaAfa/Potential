@@ -9,18 +9,26 @@ print(s)
 from sklearn import datasets#новая строка из документации к graphtools
 import graphtools as gt
 #s=np.loadtxt('text4.txt',dtype=np.complex_)
+
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
 G = gt.Graph(df, use_pygsp=True, knn=2)
 print('j',G)
 G.A
-print(G.compute_laplacian('normalized'))
-print(G.L.A)
+#вычислим нормализованный лапласиан графа и псевдооброатную к нему
+G.compute_laplacian('normalized')
+L_K=G.L.A#матрица - лапласианг графа
+print(L_K)
+PsevdoInverseL_K=LA.pinv(L_K)
+#print(PsevdoInverseL_K)
+#print(np.dot(PsevdoInverseL_K,L_K))
+
+
 #print(G.A)
 #print(G.K)
 #print('dw',G.dw)
 #print('e',G.e)
-G.compute_fourier_basis
+#G.compute_fourier_basis
 G.set_coordinates(kind=s)
 G.plot()
 
@@ -110,27 +118,8 @@ class GridPoint:
         self.density=0#плотность в этой точке
         self.InGraph=False#true если точка является ближайшей точкой сетки для некоторой точки из samples
         self.GraphNodeNumber=-1#номер вершины графа, к которой точка является ближайшей если такая есть
-point1=GridPoint()
-point2=GridPoint()
-point1.coordinates=[1,2]
-point2.coordinates=[3,4]
+        self.Potential=-1#значение потенциала в этой точке. -1 означает, что потенциал еще не вычислен
 
-#ListOfPoints=[]
-#h=1
-#for i in range(2):
-#    for j in range(3):
-#        CurrentGridPoint = GridPoint()
-#        CurrentGridPoint.coordinates = [ i * h,  j * h]
-#        CurrentGridPoint.density = Density(s,CurrentGridPoint.coordinates[0],CurrentGridPoint.coordinates[1],sigma)
-#        ListOfPoints.append(CurrentGridPoint)
-
-#l=0
-#for i in range(2):
-#    for j in range(3):
-#       print('ex',ListOfPoints[l].coordinates,ListOfPoints[l].density)
-#        l+=1
-
-print('point1',point1.coordinates,point1.density)
 #процедура создания списка точек сетки по параметрам сетки (точка сетки - объект класса GridPoint)
 def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
     GridPoints = []
@@ -153,19 +142,32 @@ def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
 m,n,h,x0,y0=CreateSuitableGridParameters(s)
 GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
 
-#ШАГ 4
-#процудура расширения матрицы L(Лапласиан)
-
-
-
+#ШАГИ 4 и 6 Вычисление значений потенциала в узлах решетки
+import random
+#a=random.random()/2+0.0000001
+#print('random',a)
+#создадим вектор плотностей в вершинах графа (наверно это можно было сделать раньше и оптимальнне, но пока пусть так)
+def CreateSmallDensityVector(Samples, m, n, h, x0, y0,GrPt):
+    '''GrPt --- list of GridPoints
+    m,n,h,x0,y0 --- grid parameters'''
+    DensVector=[]
+    for i in Samples:
+        x, y, l, t = NearestGridPoint(i[0], i[1], m, n, h, x0, y0)
+        DensVector.append(GrPt[l*(n+1)+t].density)
+    return DensVector
+DensV=CreateSmallDensityVector(s,m,n,h,x0,y0,GridPoints)
+print(DensV)
+#перечислим в каком порядке вершины графа встречаются в сетке
 for i in GridPoints:
     if i.InGraph:
         print(i.GraphNodeNumber)
 
+
+
 #Нарисуем сетку и граф
 #print('mnhx0y0x1y1',m,n,h,x0,y0)
 #print(CreateGridPoints(m,n,h,x0,y0))
-#plt.scatter([2,3,1],[0,1,2])
+
 #процедура рисования точек из Samples
 def DrawPoints(Samples):
     FirstCoordinate = []
