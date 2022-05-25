@@ -84,8 +84,8 @@ def CreateSuitableGridParameters(Samples):
     while y0+n*h<y1:
         n+=1
     print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
-
-    return m,n,h,x0,y0
+    sigma=h/3#стоит подумать каким именно его лучше выбирать...
+    return m,n,h,x0,y0,sigma
 
 #в гриде получится (m+1)*(n+1) точек
 
@@ -139,7 +139,8 @@ def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
         k+=1
     return GridPoints
 
-m,n,h,x0,y0=CreateSuitableGridParameters(s)
+m,n,h,x0,y0,sigma=CreateSuitableGridParameters(s)
+print('sigma',sigma)
 GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
 
 #ШАГИ 4 и 6 Вычисление значений потенциала в узлах решетки
@@ -177,6 +178,9 @@ PotentialCalculation(GridPoints,P,DensV)
 for l in range(m+1):
     for t in range(n+1):
          print(GridPoints[l*(n+1)+t].Potential,GridPoints[l*(n+1)+t].InGraph,GridPoints[l*(n+1)+t].density)
+
+#ШАГ7
+
 #Нарисуем сетку и граф
 #print('mnhx0y0x1y1',m,n,h,x0,y0)
 #print(CreateGridPoints(m,n,h,x0,y0))
