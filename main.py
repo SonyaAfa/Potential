@@ -161,9 +161,22 @@ print(DensV)
 for i in GridPoints:
     if i.InGraph:
         print(i.GraphNodeNumber)
-
-
-
+#процудура вычисления потенциала во всех точках сетки
+def PotentialCalculation(GrPt,P,DensVector):
+    for i in GrPt:
+        #для точек сетки из графа вычислим потенциал как L^{-1}*P, для остальных точек l^{-1}*плотность
+        if i.InGraph:
+            i.Potential=np.dot(P[i.GraphNodeNumber],DensVector)
+        else:
+            l=random.random()/10+0.0000001 #сгенерируем маленькое собственное число до 1/2
+            i.Potential=(1/l)*i.density
+    return GrPt
+P=PsevdoInverseL_K
+PotentialCalculation(GridPoints,P,DensV)
+#выпишем значения потенциала
+for l in range(m+1):
+    for t in range(n+1):
+         print(GridPoints[l*(n+1)+t].Potential,GridPoints[l*(n+1)+t].InGraph,GridPoints[l*(n+1)+t].density)
 #Нарисуем сетку и граф
 #print('mnhx0y0x1y1',m,n,h,x0,y0)
 #print(CreateGridPoints(m,n,h,x0,y0))
