@@ -1,13 +1,17 @@
 
-import scipy
+import math
+import random
 import numpy as np
 from numpy import linalg as LA
+import graphtools as gt
+import numpy as np
+import scipy.spatial.distance as distance
+from scipy.stats import norm
+import matplotlib.pyplot as plt
 
 #s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
-s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
+s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
 print(s)
-from sklearn import datasets#новая строка из документации к graphtools
-import graphtools as gt
 #s=np.loadtxt('text4.txt',dtype=np.complex_)
 
 df=s
@@ -33,13 +37,6 @@ G.set_coordinates(kind=s)
 G.plot()
 
 #df - это матрица KxM в которой хранятся первичные вектора.
-import numpy as np
-import scipy.spatial.distance as distance
-#import statistics
-from scipy.stats import norm
-import math
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import scatter
 
 sigma=1
 #nn=np.random.normal(mu,sigma,1)
@@ -144,7 +141,6 @@ print('sigma',sigma)
 GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
 
 #ШАГИ 4 и 6 Вычисление значений потенциала в узлах решетки
-import random
 #a=random.random()/2+0.0000001
 #print('random',a)
 #создадим вектор плотностей в вершинах графа (наверно это можно было сделать раньше и оптимальнне, но пока пусть так)
