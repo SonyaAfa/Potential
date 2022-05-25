@@ -2,8 +2,37 @@
 import scipy
 import numpy as np
 from numpy import linalg as LA
-import random
+
+#s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
+s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
+print(s)
+from sklearn import datasets#новая строка из документации к graphtools
 import graphtools as gt
+#s=np.loadtxt('text4.txt',dtype=np.complex_)
+
+df=s
+#Create graph from data. knn - Number of nearest neighbors (including self)
+G = gt.Graph(df, use_pygsp=True, knn=2)
+print('j',G)
+G.A
+#вычислим нормализованный лапласиан графа и псевдооброатную к нему
+G.compute_laplacian('normalized')
+L_K=G.L.A#матрица - лапласианг графа
+print(L_K)
+PsevdoInverseL_K=LA.pinv(L_K)
+#print(PsevdoInverseL_K)
+#print(np.dot(PsevdoInverseL_K,L_K))
+
+
+#print(G.A)
+#print(G.K)
+#print('dw',G.dw)
+#print('e',G.e)
+#G.compute_fourier_basis
+G.set_coordinates(kind=s)
+G.plot()
+
+#df - это матрица KxM в которой хранятся первичные вектора.
 import numpy as np
 import scipy.spatial.distance as distance
 #import statistics
@@ -11,12 +40,8 @@ from scipy.stats import norm
 import math
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import scatter
-from sklearn import datasets#новая строка из документации к graphtools
 
-
-
-
-#sigma=1
+sigma=1
 #nn=np.random.normal(mu,sigma,1)
 #вычисление значения  Гауссова ядра в точке х,y
 def GaussianKernel(x,y,mu1,mu2,sigma):
@@ -114,9 +139,12 @@ def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
         k+=1
     return GridPoints
 
+m,n,h,x0,y0,sigma=CreateSuitableGridParameters(s)
+print('sigma',sigma)
+GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
 
 #ШАГИ 4 и 6 Вычисление значений потенциала в узлах решетки
-
+import random
 #a=random.random()/2+0.0000001
 #print('random',a)
 #создадим вектор плотностей в вершинах графа (наверно это можно было сделать раньше и оптимальнне, но пока пусть так)
@@ -128,7 +156,12 @@ def CreateSmallDensityVector(Samples, m, n, h, x0, y0,GrPt):
         x, y, l, t = NearestGridPoint(i[0], i[1], m, n, h, x0, y0)
         DensVector.append(GrPt[l*(n+1)+t].density)
     return DensVector
-
+DensV=CreateSmallDensityVector(s,m,n,h,x0,y0,GridPoints)
+print(DensV)
+#перечислим в каком порядке вершины графа встречаются в сетке
+for i in GridPoints:
+    if i.InGraph:
+        print(i.GraphNodeNumber)
 #процудура вычисления потенциала во всех точках сетки
 def PotentialCalculation(GrPt,P,DensVector):
     for i in GrPt:
@@ -139,46 +172,6 @@ def PotentialCalculation(GrPt,P,DensVector):
             l=random.random()/10+0.0000001 #сгенерируем маленькое собственное число до 1/2
             i.Potential=(1/l)*i.density
     return GrPt
-
-#ШАГ7
-
-
-#s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
-s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
-print(s)
-#s=np.loadtxt('text4.txt',dtype=np.complex_)
-df=s
-#Create graph from data. knn - Number of nearest neighbors (including self)
-G = gt.Graph(df, use_pygsp=True, knn=2)
-
-#вычислим нормализованный лапласиан графа и псевдооброатную к нему
-G.compute_laplacian('normalized')
-L_K=G.L.A#матрица - лапласианг графа
-print(L_K)
-PsevdoInverseL_K=LA.pinv(L_K)
-#print(PsevdoInverseL_K)
-#print(np.dot(PsevdoInverseL_K,L_K))
-#print(G.A)
-#print(G.K)
-#print('dw',G.dw)
-#print('e',G.e)
-#G.compute_fourier_basis
-G.set_coordinates(kind=s)
-G.plot()
-
-#df - это матрица KxM в которой хранятся первичные вектора.
-
-m,n,h,x0,y0,sigma=CreateSuitableGridParameters(s)
-print('sigma',sigma)
-GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
-
-DensV=CreateSmallDensityVector(s,m,n,h,x0,y0,GridPoints)
-print(DensV)
-#перечислим в каком порядке вершины графа встречаются в сетке
-for i in GridPoints:
-    if i.InGraph:
-        print(i.GraphNodeNumber)
-
 P=PsevdoInverseL_K
 PotentialCalculation(GridPoints,P,DensV)
 #выпишем значения потенциала
@@ -186,6 +179,7 @@ for l in range(m+1):
     for t in range(n+1):
          print(GridPoints[l*(n+1)+t].Potential,GridPoints[l*(n+1)+t].InGraph,GridPoints[l*(n+1)+t].density)
 
+#ШАГ7
 
 #Нарисуем сетку и граф
 #print('mnhx0y0x1y1',m,n,h,x0,y0)
