@@ -11,6 +11,7 @@ from matplotlib.pyplot import scatter
 import random
 from sklearn import datasets#новая строка из документации к graphtools
 import graphtools as gt
+from scipy import signal#нужно для построения Вейвлета
 
 
 #вычисление значения  Гауссова ядра в точке х,y
@@ -131,6 +132,17 @@ def PotentialCalculation(GrPt,P,DensVector):
             i.Potential=(1/l)*i.density
     return GrPt
 
+
+#процедура рисования точек из Samples
+def DrawPoints(Samples):
+    FirstCoordinate = []
+    SecondCoordinate = []
+    for i in Samples:
+        FirstCoordinate = FirstCoordinate + [i[0]]
+        SecondCoordinate = SecondCoordinate + [i[1]]
+    #print('coord', FirstCoordinate, SecondCoordinate)
+    plt.scatter(FirstCoordinate, SecondCoordinate)
+    #plt.show()
 #ШАГ7
 
 
@@ -142,7 +154,7 @@ print(s)
 
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
-G = gt.Graph(df, use_pygsp=True, knn=2)
+G = gt.Graph(df, use_pygsp=True, knn=3)
 print('j',G)
 G.A
 #вычислим нормализованный лапласиан графа и псевдооброатную к нему
@@ -187,20 +199,6 @@ for i in GridPoints:
 
 
 #Нарисуем сетку и граф
-#print('mnhx0y0x1y1',m,n,h,x0,y0)
-#print(CreateGridPoints(m,n,h,x0,y0))
-
-#процедура рисования точек из Samples
-def DrawPoints(Samples):
-    FirstCoordinate = []
-    SecondCoordinate = []
-    for i in Samples:
-        FirstCoordinate = FirstCoordinate + [i[0]]
-        SecondCoordinate = SecondCoordinate + [i[1]]
-    #print('coord', FirstCoordinate, SecondCoordinate)
-    plt.scatter(FirstCoordinate, SecondCoordinate)
-    #plt.show()
-#yарисуем граф и сетку
 DrawPoints(s)
 
 #DrawPoints(GridPoints)
@@ -221,7 +219,11 @@ for i in s:
 plt.show()
 #нарисовали граф и сетку
 
-
-#x=float(input('enter x'))
-#y=float(input('enter y'))
-#print(NearestGridPoint(x,y,m,n,h,x0,y0))
+#Wavelet
+from scipy import signal
+import matplotlib.pyplot as plt
+points=100
+a=4
+vec2=signal.ricker(points,a)
+plt.plot(vec2)
+plt.show()
