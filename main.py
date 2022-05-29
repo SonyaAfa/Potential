@@ -12,7 +12,7 @@ import random
 from sklearn import datasets#новая строка из документации к graphtools
 import graphtools as gt
 from scipy import signal#нужно для построения Вейвлета
-
+from scipy.spatial import Voronoi, voronoi_plot_2d #для построения диаграммы Вороного
 
 #вычисление значения  Гауссова ядра в точке х,y
 def GaussianKernel(x,y,mu1,mu2,sigma):
@@ -146,8 +146,8 @@ def DrawPoints(Samples):
 #ШАГ7
 
 
-#s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
-s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
+s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
+#s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
 print(s)
 
 #s=np.loadtxt('text4.txt',dtype=np.complex_)
@@ -225,5 +225,12 @@ import matplotlib.pyplot as plt
 points=100
 a=4
 vec2=signal.ricker(points,a)
-plt.plot(vec2)
+#plt.plot(vec2)
+#plt.show()
+#
+def sinc(x):
+    return math.sin(x)/x
+#построение и изображение диаграммы Вороного
+vor=Voronoi(s)
+fig=voronoi_plot_2d(vor)
 plt.show()
