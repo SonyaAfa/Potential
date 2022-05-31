@@ -13,6 +13,10 @@ from sklearn import datasets#новая строка из документаци
 import graphtools as gt
 from scipy import signal#нужно для построения Вейвлета
 from scipy.spatial import Voronoi, voronoi_plot_2d #для построения диаграммы Вороного
+#для картинок
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator
+
 
 #вычисление значения  Гауссова ядра в точке х,y
 def GaussianKernel(x,y,mu1,mu2,sigma):
@@ -32,6 +36,30 @@ def Density(Samples,x,y,sigma):
     for i in Samples:
         d+=GaussianKernel(x,y,i[0],i[1],sigma)
     return d/len(Samples)
+
+#рисование поверхности по точкам
+def plot_surface(X, Y, Z):
+# cтроим график
+    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
+    linewidth=0, antialiased=False)
+
+    # диапазон по оси Z:
+    ax.set_zlim(-10, 10)
+
+    # настройки осей чтобы было красиво:
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter('{x:.02f}')
+
+    # определение цвета
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    #  сохраняем картинку
+    plt.savefig("3d_surface.png")
+
+    # показываем картинку
+    plt.show()
+
+    return 0
 
 #процудура нахождения подходящих параметров  решетки(сетки)
 def CreateSuitableGridParameters(Samples):
@@ -106,6 +134,36 @@ def CreateGridPoints(m,n,h,x0,y0,Samples,sigma):
         k+=1
     return GridPoints
 
+#класс точка диаграммы
+class DiagrammPoint:
+    def __init__(self):
+        self.coordinates=[]#координаты точки
+        self.density=0#плотность в этой точке
+        self.InGraph=False#true если точка является точкой  из samples
+        self.GraphNodeNumber=-1#номер вершины графа, если точка является точкой  из samples
+        self.Potential=-1#значение потенциала в
+
+#процедура создания множества точек из исходного графа и точек с диаграммы Вороного
+def CreateDiagrammPoints(Samples,sigma):
+    DiagrammPoints = []
+    k=0
+    for i in Samples:
+        CurrentDiagrammPoint = DiagrammPoint()
+        CurrentDiagrammPoint.coordinates=[i[0],i[1]]
+        CurrentDiagrammPoint.density=Density(Samples,i[0],i[1],sigma)
+        CurrentDiagrammPoint.InGraph=True
+        CurrentDiagrammPoint.GraphNodeNumber=k
+        k+=1
+        DiagrammPoints.append(CurrentDiagrammPoint)
+    vor = Voronoi(Samples)
+    #DiagrammPoints=DiagrammPoints+vor.vertices
+    for i in vor.vertices:
+        CurrentDiagrammPoint = DiagrammPoint()
+        CurrentDiagrammPoint.coordinates = [i[0], i[1]]
+        CurrentDiagrammPoint.density = Density(Samples, i[0], i[1], sigma)
+        CurrentDiagrammPoint.InGraph = False
+        DiagrammPoints.append(CurrentDiagrammPoint)
+    return DiagrammPoints
 
 #ШАГИ 4 и 6 Вычисление значений потенциала в узлах решетки
 
@@ -146,15 +204,15 @@ def DrawPoints(Samples):
 #ШАГ7
 
 
-s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
-#s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
+#s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
+s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
 print(s)
 
 #s=np.loadtxt('text4.txt',dtype=np.complex_)
 
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
-G = gt.Graph(df, use_pygsp=True, knn=3)
+G = gt.Graph(df, use_pygsp=True, knn=2)
 print('j',G)
 G.A
 #вычислим нормализованный лапласиан графа и псевдооброатную к нему
@@ -234,3 +292,29 @@ def sinc(x):
 vor=Voronoi(s)
 fig=voronoi_plot_2d(vor)
 plt.show()
+print('vorVertices',vor.vertices)#вершины диаграммы Вороного
+
+CreateDiagrammPoints(s,1)
+#построение графика
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+# Диапазоны по оси X и Y:
+X = np.arange(x0, x0+(m+1)*h, h) # (старт, финиш, шаг бинаризации)
+Y = np.arange(y0, y0+(n+1)*h, h) # (старт, финиш, шаг бинаризации)
+
+# определяем 2D-сетку
+X, Y = np.meshgrid(X, Y)
+
+#создадим массив значений потенциала, чтобы его нарисовать
+print('m',m,)
+Z=np.zeros((n+1,m+1))
+j=0
+for i in GridPoints:
+    l=math.floor(j/(n+1))
+    t=j-l*(n+1)
+    print('l,t',l,t)
+    Z[t,l]=i.density
+    j+=1
+
+plot_surface(X, Y, Z)
+
