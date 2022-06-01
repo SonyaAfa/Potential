@@ -82,7 +82,7 @@ def CreateSuitableGridParameters(Samples):
     while y0+n*h<y1:
         n+=1
     print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
-    sigma=h/3#стоит подумать каким именно его лучше выбирать...
+    sigma=2*h#стоит подумать каким именно его лучше выбирать...
     return m,n,h,x0,y0,sigma
 
 #в гриде получится (m+1)*(n+1) точек
@@ -186,7 +186,7 @@ def PotentialCalculation(GrPt,P,DensVector):
         if i.InGraph:
             i.Potential=np.dot(P[i.GraphNodeNumber],DensVector)
         else:
-            l=random.random()/10+0.0000001 #сгенерируем маленькое положительное собственное число до 1/10
+            l=random.random()/10+0.0001 #сгенерируем маленькое положительное собственное число до 1/10
             i.Potential=(1/l)*i.density
     return GrPt
 
@@ -202,7 +202,26 @@ def DrawPoints(Samples):
     plt.scatter(FirstCoordinate, SecondCoordinate)
     #plt.show()
 #ШАГ7
+def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
+    #fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    # Диапазоны по оси X и Y:
+    X = np.arange(x0, x0+(m+1)*h, h) # (старт, финиш, шаг бинаризации)
+    Y = np.arange(y0, y0+(n+1)*h, h) # (старт, финиш, шаг бинаризации)
 
+    # определяем 2D-сетку
+    X, Y = np.meshgrid(X, Y)
+
+    #создадим массив значений потенциала, чтобы его нарисовать
+    Z=np.zeros((n+1,m+1))
+    j=0
+    for i in GrPt:
+        l=math.floor(j/(n+1))
+        t=j-l*(n+1)
+        #print('l,t',l,t)
+        Z[t,l]=i.Potential
+        j+=1
+
+    plot_surface(X, Y, Z)
 
 #s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
 s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
@@ -212,7 +231,7 @@ print(s)
 
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
-G = gt.Graph(df, use_pygsp=True, knn=2)
+G = gt.Graph(df, use_pygsp=True, knn=3)
 print('j',G)
 G.A
 #вычислим нормализованный лапласиан графа и псевдооброатную к нему
@@ -287,34 +306,20 @@ vec2=signal.ricker(points,a)
 #plt.show()
 #
 def sinc(x):
-    return math.sin(x)/x
+    if x==0:
+        s=1
+    else:
+        s=math.sin(x)/x
+    return s
 #построение и изображение диаграммы Вороного
 vor=Voronoi(s)
 fig=voronoi_plot_2d(vor)
 plt.show()
-print('vorVertices',vor.vertices)#вершины диаграммы Вороного
+#print('vorVertices',vor.vertices)#вершины диаграммы Вороного
 
 CreateDiagrammPoints(s,1)
 #построение графика
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
-# Диапазоны по оси X и Y:
-X = np.arange(x0, x0+(m+1)*h, h) # (старт, финиш, шаг бинаризации)
-Y = np.arange(y0, y0+(n+1)*h, h) # (старт, финиш, шаг бинаризации)
 
-# определяем 2D-сетку
-X, Y = np.meshgrid(X, Y)
-
-#создадим массив значений потенциала, чтобы его нарисовать
-print('m',m,)
-Z=np.zeros((n+1,m+1))
-j=0
-for i in GridPoints:
-    l=math.floor(j/(n+1))
-    t=j-l*(n+1)
-    print('l,t',l,t)
-    Z[t,l]=i.density
-    j+=1
-
-plot_surface(X, Y, Z)
-
+DrawPotentialLandscape(x0,y0,m,n,h,GridPoints)
