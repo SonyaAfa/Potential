@@ -27,7 +27,7 @@ def GaussianKernel(x,y,mu1,mu2,sigma):
     return K_sigma
      #return 1/(2*math.pi*sigma**2)*math.exp(-((x-mu1)**2+(y-mu2)**2)/(2*sigma**2))
 
-#процудура нахождения плотности в точке (x,y), рассчитаная как сумма Гауссиан по матрице точек Samples
+#процудура нахождения плотности в точке (x,y), рассчитаная как сумма Гауссиан по списку точек Samples
 def Density(Samples,x,y,sigma):
     '''samples - полученные точки,
      (x,y) - точка, в которой вычисляем плотность;
@@ -202,6 +202,7 @@ def DrawPoints(Samples):
     plt.scatter(FirstCoordinate, SecondCoordinate)
     #plt.show()
 #ШАГ7
+#процедура рисования ланшафта по параметрам сетки и списку точек сетки
 def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
     #fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     # Диапазоны по оси X и Y:
@@ -231,7 +232,7 @@ print(s)
 
 df=s
 #Create graph from data. knn - Number of nearest neighbors (including self)
-G = gt.Graph(df, use_pygsp=True, knn=3)
+G = gt.Graph(df, use_pygsp=True, knn=3)#df - это матрица KxM в которой хранятся первичные вектора.
 print('j',G)
 G.A
 #вычислим нормализованный лапласиан графа и псевдооброатную к нему
@@ -248,26 +249,25 @@ PsevdoInverseL_K=LA.pinv(L_K)
 #print('dw',G.dw)
 #print('e',G.e)
 #G.compute_fourier_basis
+#нарисуем граф
 G.set_coordinates(kind=s)
 G.plot()
 
-#df - это матрица KxM в которой хранятся первичные вектора.
-
+#вычислим параметры сетки и создадим список точек сетки с такими параметрами
 m,n,h,x0,y0,sigma=CreateSuitableGridParameters(s)
 print('sigma',sigma)
 GridPoints=CreateGridPoints(m,n,h,x0,y0,s,sigma)
-
+#вычислим вектор плотностей для точек графа
 DensV=CreateSmallDensityVector(s,m,n,h,x0,y0,GridPoints)
 print(DensV)
 
-P=PsevdoInverseL_K
+P=PsevdoInverseL_K#псевдообратная матрица к лапласиану графа
+#авычислим потенциал во всех точках сетки
 PotentialCalculation(GridPoints,P,DensV)
 #выпишем значения потенциала
 for l in range(m+1):
     for t in range(n+1):
          print(GridPoints[l*(n+1)+t].Potential,GridPoints[l*(n+1)+t].InGraph,GridPoints[l*(n+1)+t].density)
-
-
 
 #перечислим в каком порядке вершины графа встречаются в сетке
 for i in GridPoints:
