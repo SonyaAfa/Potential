@@ -44,7 +44,7 @@ def plot_surface(X, Y, Z):
     linewidth=0, antialiased=False)
 
     # диапазон по оси Z:
-    ax.set_zlim(-10, 10)
+    ax.set_zlim(-3, 10)
 
     # настройки осей чтобы было красиво:
     ax.zaxis.set_major_locator(LinearLocator(10))
@@ -82,7 +82,7 @@ def CreateSuitableGridParameters(Samples):
     while y0+n*h<y1:
         n+=1
     print('The grid will be', m ,'x', n,'with the step',h,'left corner',(x0,y0))
-    sigma=2*h#стоит подумать каким именно его лучше выбирать...
+    sigma=h/3#стоит подумать каким именно его лучше выбирать...
     return m,n,h,x0,y0,sigma
 
 #в гриде получится (m+1)*(n+1) точек
@@ -224,6 +224,21 @@ def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
 
     plot_surface(X, Y, Z)
 
+def sinc(x):
+    if x==0:
+        s=1
+    else:
+        s=math.sin(math.pi*x)/(math.pi*x)
+    return s
+#гладкая функция, принимающая значения grPt.Potential в точках сетки
+def SmoothingFunction(x0,y0,m,n,h,Grpt,x,y):
+    f=0
+    for i in Grpt:
+        f+=i.Potential*sinc(x-i.coordinates[0])*sinc(y-i.coordinates[1])
+    return f
+
+
+
 #s=np.loadtxt('StartSamples')#читаю данные из файла как матрицу
 s=np.loadtxt('Samples1')#читаю данные из файла как матрицу
 print(s)
@@ -305,12 +320,7 @@ vec2=signal.ricker(points,a)
 #plt.plot(vec2)
 #plt.show()
 #
-def sinc(x):
-    if x==0:
-        s=1
-    else:
-        s=math.sin(x)/x
-    return s
+
 #построение и изображение диаграммы Вороного
 vor=Voronoi(s)
 fig=voronoi_plot_2d(vor)
@@ -323,3 +333,23 @@ fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 
 DrawPotentialLandscape(x0,y0,m,n,h,GridPoints)
+
+
+#нарисуем гладкую картинку
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+# Диапазоны по оси X и Y:
+hh=0.25
+X = np.arange(x0, x0+5, hh) # (старт, финиш, шаг бинаризации)
+Y = np.arange(y0, y0+5, hh) # (старт, финиш, шаг бинаризации)
+
+print('le',len(X))
+# определяем 2D-сетку
+X, Y = np.meshgrid(X, Y)
+Z = np.zeros((20, 20))
+for l in range(20):
+    for t in range(20):
+        Z[t,l]=SmoothingFunction(x0,y0,m,n,h,GridPoints,x0+l*hh,y0+t*hh)
+
+
+plot_surface(X, Y, Z)
