@@ -44,7 +44,9 @@ def plot_surface(X, Y, Z):
     linewidth=0, antialiased=False)
 
     # диапазон по оси Z:
-    ax.set_zlim(-3, 10)
+    minz=np.min(Z)
+    maxz=np.max(Z)
+    ax.set_zlim(minz-1,maxz+1)
 
     # настройки осей чтобы было красиво:
     ax.zaxis.set_major_locator(LinearLocator(10))
@@ -189,7 +191,15 @@ def PotentialCalculation(GrPt,P,DensVector):
             l=random.random()/10+0.0001 #сгенерируем маленькое положительное собственное число до 1/10
             i.Potential=(1/l)*i.density
     return GrPt
-
+#выпишем координаты точек сетки и значения потенциала  и плотности в них
+def PrintGrid(GrPt):
+    print('x','y','InGraph','Potentia','Density')
+    for i in GrPt:
+        x=np.around(i.coordinates[0],2)
+        y=np.around(i.coordinates[1],2)
+        pot=np.around(i.Potential,2)
+        dens=np.around(i.density,2)
+        print(x,y,i.InGraph,pot,dens)
 
 #процедура рисования точек из Samples
 def DrawPoints(Samples):
@@ -201,9 +211,13 @@ def DrawPoints(Samples):
     #print('coord', FirstCoordinate, SecondCoordinate)
     plt.scatter(FirstCoordinate, SecondCoordinate)
     #plt.show()
-#ШАГ7
-#процедура рисования ланшафта по параметрам сетки и списку точек сетки
-def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
+#процедура создания массива значений функций potential и density для рисования
+#функция фозвращает
+            #X - список первых координат точек сетки
+            #Y- список вторых координат точек сетки
+            #PotentialValue - список значений потенциала
+            #DensityValue - список значений плотности
+def CreatePotentialAndDensityValues(x0,y0,m,n,h,GrPt):
     #fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     # Диапазоны по оси X и Y:
     X = np.arange(x0, x0+(m+1)*h, h) # (старт, финиш, шаг бинаризации)
@@ -213,16 +227,27 @@ def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
     X, Y = np.meshgrid(X, Y)
 
     #создадим массив значений потенциала, чтобы его нарисовать
-    Z=np.zeros((n+1,m+1))
+    PotentialValue=np.zeros((n+1,m+1))
+    DensityValue=np.zeros((n+1,m+1))
     j=0
     for i in GrPt:
         l=math.floor(j/(n+1))
         t=j-l*(n+1)
         #print('l,t',l,t)
-        Z[t,l]=i.Potential
+        PotentialValue[t,l]=i.Potential
+        DensityValue[t,l]=3#max(math.log(i.density),-1)
         j+=1
 
+    return X,Y,PotentialValue,DensityValue
+#процедура рисования ланшафта по параметрам сетки и списку точек сетки
+def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
+    X,Y,Z,T=CreatePotentialAndDensityValues(x0,y0,m,n,h,GrPt)
     plot_surface(X, Y, Z)
+
+def DrawDensityLandscape(x0,y0,m,n,h,GrPt):
+    X,Y,Z,T=CreatePotentialAndDensityValues(x0,y0,m,n,h,GrPt)
+    plot_surface(X, Y, T)
+
 
 def sinc(x):
     if x==0:
@@ -231,7 +256,7 @@ def sinc(x):
         s=math.sin(math.pi*x)/(math.pi*x)
     return s
 #гладкая функция, принимающая значения grPt.Potential в точках сетки
-def SmoothingFunction(x0,y0,m,n,h,Grpt,x,y):
+def SmoothingFunction(x0,y0,m,n,h,Grpt,x,y,d):
     f=0
     for i in Grpt:
         f+=i.Potential*sinc(x-i.coordinates[0])*sinc(y-i.coordinates[1])
@@ -332,24 +357,52 @@ CreateDiagrammPoints(s,1)
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 
+#DrawPotentialLandscape(x0,y0,m,n,h,GridPoints,'potential')
 DrawPotentialLandscape(x0,y0,m,n,h,GridPoints)
+DrawDensityLandscape(x0,y0,m,n,h,GridPoints)
+#DrawPotentialLandscape(x0,y0,m,n,h,GridPoints,'density')
 
-
+hh=0.25
 #нарисуем гладкую картинку
+def DrawSmoothFunction(x0,y0,m,n,h,hh):
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+    # Диапазоны по оси X и Y:
+
+    X = np.arange(x0, x0+m*h, hh) # (старт, финиш, шаг бинаризации)
+    Y = np.arange(y0, y0+n*h, hh) # (старт, финиш, шаг бинаризации)
+
+    # определяем 2D-сетку
+    X, Y = np.meshgrid(X, Y)
+    #M=math.floor(n*h/hh)
+    #N=math.floor(m*h/hh)
+    Z = np.zeros((len(Y),len(X)))
+
+    #print('z',Z)
+    for l in range(len(X)):
+        for t in range(len(Y)):
+            Z[t,l]=SmoothingFunction(x0,y0,m,n,h,GridPoints,x0+l*hh,y0+t*hh,'potential')
+
+    plot_surface(X, Y, Z)
+print('h',h)
+#DrawSmoothFunction(x0,y0,m,n,h,hh)
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 # Диапазоны по оси X и Y:
-hh=0.25
-X = np.arange(x0, x0+5, hh) # (старт, финиш, шаг бинаризации)
-Y = np.arange(y0, y0+5, hh) # (старт, финиш, шаг бинаризации)
 
-print('le',len(X))
+X = np.arange(x0, x0+m*h, hh) # (старт, финиш, шаг бинаризации)
+Y = np.arange(y0, y0+n*h, hh) # (старт, финиш, шаг бинаризации)
+
 # определяем 2D-сетку
 X, Y = np.meshgrid(X, Y)
-Z = np.zeros((20, 20))
-for l in range(20):
-    for t in range(20):
-        Z[t,l]=SmoothingFunction(x0,y0,m,n,h,GridPoints,x0+l*hh,y0+t*hh)
+Z = np.zeros((len(Y),len(X)))
 
-
+#print('z',Z)
+for l in range(len(X)):
+    for t in range(len(Y)):
+         Z[t,l]=SmoothingFunction(x0,y0,m,n,h,GridPoints,x0+l*hh,y0+t*hh,'potential')
+PrintGrid(GridPoints)
 plot_surface(X, Y, Z)
+
+#x=np.around(0.3562,decimals=2)
+#print(x)
