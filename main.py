@@ -16,7 +16,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d #для построения 
 #для картинок
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
-
+import sys #для записи в файл
 
 #вычисление значения  Гауссова ядра в точке х,y
 def GaussianKernel(x,y,mu1,mu2,sigma):
@@ -193,13 +193,20 @@ def PotentialCalculation(GrPt,P,DensVector):
     return GrPt
 #выпишем координаты точек сетки и значения потенциала  и плотности в них
 def PrintGrid(GrPt):
-    print('x','y','InGraph','Potentia','Density')
+    original_stdout=sys.stdout
+    FileGridPoints=open('GridPointsValue','w')
+    sys.stdout=FileGridPoints
+    #with open('GridPointsValue','a') as file:
+    FileGridPoints.write('x,y,InGraph,Potentia,Density')
     for i in GrPt:
         x=np.around(i.coordinates[0],2)
         y=np.around(i.coordinates[1],2)
         pot=np.around(i.Potential,2)
         dens=np.around(i.density,2)
-        print(x,y,i.InGraph,pot,dens)
+        #FileGridPoints.write('x'+'y'+'i.InGraph'+'pot'+'dens'+'\n')
+        print(x,y,i.InGraph,pot,dens,'\n')
+    sys.stdout = original_stdout
+    #FileGridPoints.close()
 
 #процедура рисования точек из Samples
 def DrawPoints(Samples):
@@ -243,10 +250,14 @@ def CreatePotentialAndDensityValues(x0,y0,m,n,h,GrPt):
 def DrawPotentialLandscape(x0,y0,m,n,h,GrPt):
     X,Y,Z,T=CreatePotentialAndDensityValues(x0,y0,m,n,h,GrPt)
     plot_surface(X, Y, Z)
+    #  сохраняем картинку
+    plt.savefig("PotentialLandscape.png")
 
 def DrawDensityLandscape(x0,y0,m,n,h,GrPt):
     X,Y,Z,T=CreatePotentialAndDensityValues(x0,y0,m,n,h,GrPt)
     plot_surface(X, Y, T)
+    #  сохраняем картинку
+    #plt.savefig("3d_surface.png")
 
 
 def sinc(x):
